@@ -3,10 +3,10 @@ import time
 import os
 
 def ejecutar_servidor_final():
-    return subprocess.Popen(["python", "./servidor_final.py"])
+    return subprocess.Popen(["python3", "./servidor_final.py"])
 
 def ejecutar_servidor_intermedio():
-    return subprocess.Popen(["python", "./servidor_intermedio.py"])
+    return subprocess.Popen(["python3", "./servidor_intermedio.py"])
 
 def ejecutar_cliente_sensor():
     ruta = "./cliente_sensor"

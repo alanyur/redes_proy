@@ -49,24 +49,44 @@ def recibir():
 # NUEVA RUTA WEB PARA VER LOS DATOS
 @app.route('/')
 def ver_datos():
+    import datetime
     with sqlite3.connect(DB_PATH) as conn:
         cursor = conn.cursor()
         cursor.execute("SELECT * FROM mediciones ORDER BY timestamp DESC LIMIT 20")
         datos = cursor.fetchall()
 
+    # Preparar datos para el gráfico
+    datos = datos[::-1]  # Invertimos para mostrar en orden cronológico
+    etiquetas = [datetime.datetime.fromtimestamp(row[1]).strftime('%H:%M:%S') for row in datos]
+    temperaturas = [row[2] for row in datos]
+    presiones = [row[3] for row in datos]
+    humedades = [row[4] for row in datos]
+
     html = """
     <!DOCTYPE html>
     <html>
     <head>
-        <title>Datos del Sensor</title>
+        <title>Dashboard Sensorial</title>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
         <style>
-            table { border-collapse: collapse; width: 100%; }
+            body { font-family: sans-serif; padding: 20px; }
+            h1, h2 { text-align: center; }
+            table { border-collapse: collapse; width: 100%; margin-top: 30px; }
             th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
             th { background-color: #f2f2f2; }
+            canvas { max-width: 100%; margin-top: 40px; }
         </style>
+        <script>
+            setTimeout(() => {
+                window.location.reload();
+            }, 5000);  // 5000 milisegundos = 5 segundos
+        </script>
     </head>
     <body>
-        <h1>Últimos 20 Datos del Sensor</h1>
+        <h1>Dashboard Sensorial</h1>
+        <canvas id="graficoSensor"></canvas>
+
+        <h2>Últimos 20 Datos del Sensor</h2>
         <table>
             <tr>
                 <th>ID</th><th>Timestamp</th><th>Temperatura (°C)</th><th>Presión (hPa)</th><th>Humedad (%)</th>
@@ -81,11 +101,55 @@ def ver_datos():
             </tr>
             {% endfor %}
         </table>
+
+        <script>
+        const ctx = document.getElementById('graficoSensor').getContext('2d');
+        const chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: {{ etiquetas|tojson }},
+                datasets: [
+                    {
+                        label: 'Temperatura (°C)',
+                        data: {{ temperaturas|tojson }},
+                        borderColor: 'red',
+                        fill: false
+                    },
+                    {
+                        label: 'Presión (hPa)',
+                        data: {{ presiones|tojson }},
+                        borderColor: 'blue',
+                        fill: false
+                    },
+                    {
+                        label: 'Humedad (%)',
+                        data: {{ humedades|tojson }},
+                        borderColor: 'green',
+                        fill: false
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: { beginAtZero: false },
+                    x: { title: { display: true, text: 'Hora' } }
+                }
+            }
+        });
+        </script>
     </body>
     </html>
     """
 
-    return render_template_string(html, datos=datos)
+    return render_template_string(
+        html,
+        datos=datos,
+        etiquetas=etiquetas,
+        temperaturas=temperaturas,
+        presiones=presiones,
+        humedades=humedades
+    )
 
 if __name__ == "__main__":
     inicializar_bd()
