@@ -61,9 +61,6 @@ int main() {
         close(sock);
         sensor_id++; // incrementa el ID en cada iteración
 
-        // Opcional: reiniciar ID si quieres limitar el rango (ej. 101 a 110)
-        if (sensor_id > 110)
-            sensor_id = 101;
 
         sleep(5); // espera 5 segundos antes del siguiente envío
     }
