@@ -151,6 +151,19 @@ def ver_datos():
         humedades=humedades
     )
 
+@app.route('/api/ultimos', methods=['GET'])
+def api_ultimos():
+    with sqlite3.connect(DB_PATH) as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM mediciones ORDER BY timestamp DESC LIMIT 20")
+        filas = cursor.fetchall()
+
+    resultado = [
+        {"id": f[0], "timestamp": f[1], "temperatura": f[2], "presion": f[3], "humedad": f[4]}
+        for f in filas
+    ]
+    return resultado
+
 if __name__ == "__main__":
     inicializar_bd()
     print("[Servidor Final] Corriendo en puerto 8000")

@@ -15,6 +15,13 @@ def ejecutar_cliente_sensor():
         return None
     return subprocess.Popen([ruta])
 
+def ejecutar_consulta_cliente():
+    ruta = "./consulta_cliente.py"
+    if not os.path.exists(ruta):
+        print("❌ Script consulta_cliente.py no encontrado.")
+        return None
+    return subprocess.Popen(["python3", ruta])
+
 if __name__ == "__main__":
     print("🟢 Iniciando todos los módulos del sistema...\n")
 
@@ -26,16 +33,25 @@ if __name__ == "__main__":
 
     proc_sensor = ejecutar_cliente_sensor()
 
+
+    proc_consulta = ejecutar_consulta_cliente()
+
     print("\n✅ Todos los procesos fueron lanzados.")
     print("Presiona Ctrl+C para detener.")
 
     try:
         proc_final.wait()
         proc_intermedio.wait()
-        proc_sensor.wait()
+        if proc_sensor:
+            proc_sensor.wait()
+        if proc_consulta:
+            proc_consulta.wait()
     except KeyboardInterrupt:
         print("\n🛑 Deteniendo procesos...")
         proc_final.terminate()
         proc_intermedio.terminate()
-        proc_sensor.terminate()
+        if proc_sensor:
+            proc_sensor.terminate()
+        if proc_consulta:    
+            proc_consulta.terminate()
         print("✅ Procesos detenidos.")
